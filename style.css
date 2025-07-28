@@ -11,6 +11,7 @@ body {
     background-blend-mode: overlay;
     height: 100%;
     margin: 0;
+    overflow: hidden;
 }
 
 .container {
@@ -94,7 +95,7 @@ body {
 }
 
 .card_front {
-    background-image: url("images/carta8.png");
+    background-image: url("images/card8.png");
 }
 
 .card_back {
@@ -139,4 +140,21 @@ body {
 .card_inner.returning {
     animation: none;
     transition: transform 0.5s;
+}
+
+/*Overlay to stop click events via Javascript*/
+.freeze-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 9999;
+    pointer-events: all;
+}
+
+.freeze-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
 }
