@@ -1,143 +1,38 @@
-* {
-    padding: 0;
-    margin: 0;
-}
+const cards = document.querySelectorAll(".card");
+const newGameBtn = document.querySelector(".new_game_btn");
 
-/*Layout creation*/
-body {
-    background-image: url("images/background.jpg");
-    background-size: cover;
-    background-position: center;
-    background-blend-mode: overlay;
-    height: 100%;
-    margin: 0;
-}
+cards.forEach(card => {
+    card.addEventListener("click", () => {
+        card.classList.toggle("card_flipped");
+    });
+});
 
-.container {
-    box-shadow: 0 3rem 5rem rgba(0, 0, 0, 1);
-    min-height: 100vh;
-    background-color: rgb(187, 187, 187, 0.5);
-    backdrop-filter: blur(10px);
-    padding: 2.5rem 20rem;
-    max-width: 30rem;
-    margin: 0 auto;
-}
+newGameBtn.addEventListener("click", () => {
+    cards.forEach(card => {
+        card.classList.remove("card_flipped");
+    });
 
-.header_container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-}
+    // Rotates card
+    setTimeout(() => {
+        cards.forEach(card => {
+            card.classList.remove("returning");
+            card.classList.add("animating");
+        });
+    }, 600); // flip card animation time
 
-.subheader {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: center;
-}
+    // Fase 2: Shuffles card
+    setTimeout(() => {
+        cards.forEach(card => {
+            card.classList.remove("animating");
+            card.classList.add("shuffling");
+        });
+    }, 1100); // rotate animation time + flip card time
 
-.new_game_btn {
-    padding: 0.5rem;
-    border-radius: 1rem;
-    border: none;
-}
-
-.new_game_btn:hover {
-    background-color: rgb(182, 181, 181);
-    color: #262626;
-}
-
-.game_container {
-    display: grid;
-    gap: 1rem 5rem;
-    grid-template-columns: repeat(4, 6rem);
-    grid-template-rows: repeat(4, 9rem);
-    justify-content: center;
-    margin-top: 4rem;
-}
-
-/*Hover animation*/
-.card {
-    width: 100%;
-    height: 100%;
-    transition: transform 0.3s ease;
-    perspective: 1000px;
-}
-
-.card:hover {
-    transform: scale(1.1);
-}
-
-/*Flip animation*/
-.card_inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    transition: transform 0.6s;
-}
-
-.card_flipped .card_inner {
-    transform: rotateY(180deg);
-}
-
-.card_front,
-.card_back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    background-size: cover;
-    background-position: center;
-    border-radius: 1rem;
-}
-
-.card_front {
-    background-image: url("images/carta8.png");
-}
-
-.card_back {
-    background-image: url("images/background.jpg");
-    transform: rotateY(180deg);
-}
-
-/*Shuffle animation*/
-@keyframes rotateCard {
-    to {
-        transform: translate(0, 0) scale(0.9) rotate(10deg);
-    }
-}
-
-@keyframes shuffleCards {
-    0% {
-        transform: translate(2px, -2px) rotate(2deg);
-    }
-    25% {
-        transform: translate(-2px, 2px) rotate(-2deg);
-    }
-    50% {
-        transform: translate(3px, -1px) rotate(1deg);
-    }
-    75% {
-        transform: translate(-1px, 3px) rotate(-1deg);
-    }
-    100% {
-        transform: translate(0, 0) rotate(0deg);
-    }
-}
-
-.card.animating {
-    transition: none;
-    animation: rotateCard 0.5s forwards;
-}
-
-.card.shuffling {
-    animation: shuffleCards 0.4s infinite alternate;
-}
-
-.card.returning {
-    animation: none;
-    transform: none;
-    transition: transform 0.5s;
-}
+    // Fase 3: Returns to original state
+    setTimeout(() => {
+        cards.forEach(card => {
+            card.classList.remove("shuffling");
+            card.classList.add("returning");
+        });
+    }, 2100); // full time
+});
