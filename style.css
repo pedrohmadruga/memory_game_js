@@ -127,17 +127,16 @@ body {
     }
 }
 
-.card.animating {
+.card_inner.animating {
     transition: none;
     animation: rotateCard 0.5s forwards;
 }
 
-.card.shuffling {
+.card_inner.shuffling {
     animation: shuffleCards 0.4s infinite alternate;
 }
 
-.card.returning {
+.card_inner.returning {
     animation: none;
-    transform: none;
     transition: transform 0.5s;
 }
