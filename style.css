@@ -99,7 +99,6 @@ body {
 }
 
 .card_back {
-    background-image: url("images/background.jpg");
     transform: rotateY(180deg);
 }
 
