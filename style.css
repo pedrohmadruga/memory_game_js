@@ -1,0 +1,100 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    background-image: url("images/background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: overlay;
+    height: 100%;
+    margin: 0;
+}
+
+.container {
+    box-shadow: 0 3rem 5rem rgba(0, 0, 0, 1);
+    min-height: 100vh;
+    background-color: rgb(187, 187, 187, 0.5);
+    backdrop-filter: blur(10px);
+    padding: 2.5rem 20rem;
+    max-width: 30rem;
+    margin: 0 auto;
+}
+
+.header_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.subheader {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+}
+
+.game_container {
+    display: grid;
+    gap: 1rem 5rem;
+    grid-template-columns: repeat(4, 6rem);
+    grid-template-rows: repeat(4, 9rem);
+    justify-content: center;
+    margin-top: 4rem;
+}
+
+.card {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease;
+    perspective: 1000px;
+}
+
+.card:hover {
+    transform: scale(1.1);
+}
+
+.card_inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.card_flipped .card_inner {
+    transform: rotateY(180deg);
+}
+
+.card_front,
+.card_back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    background-size: cover;
+    background-position: center;
+    border-radius: 1rem;
+}
+
+.card_front {
+    background-image: url("images/carta8.png");
+}
+
+.card_back {
+    background-image: url("images/background.jpg");
+    transform: rotateY(180deg);
+}
+
+.new_game_btn {
+    padding: 0.5rem;
+    border-radius: 1rem;
+    border: none;
+}
+
+.new_game_btn:hover {
+    background-color: rgb(182, 181, 181);
+    color: #262626;
+}
