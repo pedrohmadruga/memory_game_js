@@ -8,61 +8,102 @@ const overlay = document.querySelector(".freeze-overlay");
 let isShuffling,
     currentCardsFlippedArray,
     currentCardsFlipped,
-    totalCardsFlipped;
+    totalCardsFlipped,
+    cardsOnBoardMap,
+    isCheckingCards,
+    pairsFound;
 
 function startNewGame() {
     isShuffling = false;
+    isCheckingCards = false;
     currentCardsFlipped = 0;
     totalCardsFlipped = 0;
     currentCardsFlippedArray = [];
+    pairsFound = new Set();
+
+    const initalData = [
+        ["card0", 0],
+        ["card1", 0],
+        ["card2", 0],
+        ["card3", 0],
+        ["card4", 0],
+        ["card5", 0],
+        ["card6", 0],
+        ["card7", 0],
+    ];
+    cardsOnBoardMap = new Map(initalData);
+
     shuffleCards();
 }
 
 function shuffleCards() {
     cards.forEach(card => {
-        const rng = Math.trunc(Math.random() * 8);
+        let mapped = false;
         const back = card.querySelector(".card_back");
-        back.style.backgroundImage = `url("images/card${rng}.png")`;
+
+        while (!mapped) {
+            const rng = Math.trunc(Math.random() * 8);
+            let currentCardAmount = cardsOnBoardMap.get(`card${rng}`);
+
+            if (currentCardAmount < 2) {
+                back.style.backgroundImage = `url("images/card${rng}.png")`;
+
+                cardsOnBoardMap.set(`card${rng}`, currentCardAmount + 1);
+                mapped = true;
+            }
+        }
     });
+}
+
+function winPopUp() {
+    // TODO: set timeout to wait card flip and increase modal size
 }
 
 startNewGame();
 
 cards.forEach(card => {
     card.addEventListener("click", () => {
-        if (isShuffling || card.classList.contains("card_flipped")) return; // Ignores click if cards are shuffling or if already flipped
+        if (
+            isShuffling ||
+            isCheckingCards ||
+            card.classList.contains("card_flipped")
+        )
+            return; // Ignores click if cards are shuffling or if already flipped
+
         card.classList.add("card_flipped");
+        currentCardsFlipped++;
+        currentCardsFlippedArray.push(card);
 
-        if (card.classList.contains("card_flipped")) {
-            currentCardsFlipped++;
-            currentCardsFlippedArray.push(card);
-            if (currentCardsFlipped == 2) {
-                //TODO: if cards are equal, keep them up
-                const card1 =
-                    currentCardsFlippedArray[0].querySelector(".card_back");
-                const card2 =
-                    currentCardsFlippedArray[1].querySelector(".card_back");
+        if (currentCardsFlipped == 2) {
+            isCheckingCards = true;
+            const card1 =
+                currentCardsFlippedArray[0].querySelector(".card_back");
+            const card2 =
+                currentCardsFlippedArray[1].querySelector(".card_back");
 
-                const image1 = window.getComputedStyle(card1).backgroundImage;
-                const image2 = window.getComputedStyle(card2).backgroundImage;
+            const image1 = window.getComputedStyle(card1).backgroundImage;
+            const image2 = window.getComputedStyle(card2).backgroundImage;
 
+            // If different, remove all click events. If equal, add pair to pairsFound set
+            image1 !== image2
+                ? overlay.classList.remove("hidden")
+                : pairsFound.add(image1);
+
+            setTimeout(() => {
+                overlay.classList.add("hidden");
                 if (image1 !== image2) {
-                    // stop all click events for 1 second
-                    overlay.classList.remove("hidden");
+                    currentCardsFlippedArray.forEach(card => {
+                        card.classList.remove("card_flipped");
+                    });
                 }
+                currentCardsFlipped = 0;
+                currentCardsFlippedArray = [];
+                isCheckingCards = false;
+            }, 1500);
+        }
 
-                // If cards are different
-                setTimeout(() => {
-                    overlay.classList.add("hidden");
-                    if (image1 !== image2) {
-                        currentCardsFlippedArray.forEach(card => {
-                            card.classList.remove("card_flipped");
-                        });
-                    }
-                    currentCardsFlipped = 0;
-                    currentCardsFlippedArray = [];
-                }, 1500);
-            }
+        if (pairsFound.size === 8) {
+            winPopUp();
         }
     });
 });
@@ -105,5 +146,6 @@ newGameBtn.addEventListener("click", () => {
     }, 2100); // full time
 });
 
-// TODO: Game logic
+//TODO: Timer
+
 // TODO: Congratulations pop up that gets bigger
