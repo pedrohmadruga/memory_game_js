@@ -3,6 +3,8 @@
 const cards = document.querySelectorAll(".card");
 const newGameBtn = document.querySelector(".new_game_btn");
 const overlay = document.querySelector(".freeze-overlay");
+const closeModalBtn = document.querySelector(".close_modal");
+const modal = document.querySelector(".modal");
 
 // Global variables
 let isShuffling,
@@ -41,6 +43,7 @@ function shuffleCards() {
         let mapped = false;
         const back = card.querySelector(".card_back");
 
+        // TODO: This algorithm is waaay too inneficient. Refactor later with Fisher-Yates algorithm. Priority 3
         while (!mapped) {
             const rng = Math.trunc(Math.random() * 8);
             let currentCardAmount = cardsOnBoardMap.get(`card${rng}`);
@@ -55,9 +58,19 @@ function shuffleCards() {
     });
 }
 
-function winPopUp() {
-    // TODO: set timeout to wait card flip and increase modal size
+closeModalBtn.addEventListener("click", () => {
+    modal.classList.remove("open");
+});
+
+function winPopUpShow() {
+    // TODO: set timeout to wait card flip and increase modal size. Priority 1
+    setTimeout(() => {
+        modal.classList.add("open");
+    }, 600);
+    // TODO: blur filter while pop up is open
 }
+
+// TODO: close pop up event listener
 
 startNewGame();
 
@@ -99,11 +112,11 @@ cards.forEach(card => {
                 currentCardsFlipped = 0;
                 currentCardsFlippedArray = [];
                 isCheckingCards = false;
-            }, 1500);
+            }, 1000);
         }
 
         if (pairsFound.size === 8) {
-            winPopUp();
+            winPopUpShow();
         }
     });
 });
@@ -115,7 +128,7 @@ newGameBtn.addEventListener("click", () => {
         card.classList.remove("card_flipped");
     });
 
-    // TODO: Refactor code, inner is currently being repeated in the three timeouts
+    // TODO: Refactor code, inner is currently being repeated in the three timeouts. Priority 4
     // Step 1: Rotates card
     setTimeout(() => {
         cards.forEach(card => {
@@ -146,6 +159,4 @@ newGameBtn.addEventListener("click", () => {
     }, 2100); // full time
 });
 
-//TODO: Timer
-
-// TODO: Congratulations pop up that gets bigger
+//TODO: Timer. Priority 2
