@@ -1,213 +1,187 @@
-* {
-    padding: 0;
-    margin: 0;
+"use strict";
+
+const cards = document.querySelectorAll(".card");
+const newGameBtn = document.querySelector(".new_game_btn");
+const overlay = document.querySelector(".freeze-overlay");
+const closeModalBtn = document.querySelector(".close_modal");
+const modal = document.querySelector(".modal");
+const timerEl = document.querySelectorAll(".timer");
+const lowestTimeEl = document.querySelector(".lowest_time");
+
+// Global variables
+let isShuffling,
+    currentCardsFlippedArray,
+    currentCardsFlipped,
+    totalCardsFlipped,
+    cardsOnBoardMap,
+    isCheckingCards,
+    pairsFound,
+    counter,
+    counterInterval,
+    highscore = 0;
+
+function startNewGame() {
+    isShuffling = false;
+    isCheckingCards = false;
+    currentCardsFlipped = 0;
+    totalCardsFlipped = 0;
+    currentCardsFlippedArray = [];
+    pairsFound = new Set();
+    counter = 0;
+    clearInterval(counterInterval);
+
+    counterInterval = setInterval(() => {
+        counter++;
+        timerEl.forEach(timer => {
+            timer.textContent = convertTimer(counter);
+        });
+    }, 1000);
+
+    const initalData = [
+        ["card0", 0],
+        ["card1", 0],
+        ["card2", 0],
+        ["card3", 0],
+        ["card4", 0],
+        ["card5", 0],
+        ["card6", 0],
+        ["card7", 0],
+    ];
+    cardsOnBoardMap = new Map(initalData);
+
+    shuffleCards();
 }
 
-/*Layout creation*/
-body {
-    background-image: url("images/background.jpg");
-    background-size: cover;
-    background-position: center;
-    background-blend-mode: overlay;
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
+function convertTimer(counter) {
+    const minutes = Math.trunc(counter / 60)
+        .toString()
+        .padStart(2, 0);
+    const seconds = (counter - minutes * 60).toString().padStart(2, 0);
+
+    return `${minutes}:${seconds}`;
 }
 
-.container {
-    box-shadow: 0 3rem 5rem rgba(0, 0, 0, 1);
-    min-height: 100vh;
-    background-color: rgb(187, 187, 187, 0.5);
-    backdrop-filter: blur(10px);
-    padding: 2.5rem 20rem;
-    max-width: 30rem;
-    margin: 0 auto;
+function shuffleCards() {
+    cards.forEach(card => {
+        let mapped = false;
+        const back = card.querySelector(".card_back");
+
+        // TODO: This algorithm is waaay too inneficient. Refactor later with Fisher-Yates algorithm. Priority 3
+        while (!mapped) {
+            const rng = Math.trunc(Math.random() * 8);
+            let currentCardAmount = cardsOnBoardMap.get(`card${rng}`);
+
+            if (currentCardAmount < 2) {
+                back.style.backgroundImage = `url("images/card${rng}.png")`;
+
+                cardsOnBoardMap.set(`card${rng}`, currentCardAmount + 1);
+                mapped = true;
+            }
+        }
+    });
 }
 
-.header_container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+closeModalBtn.addEventListener("click", () => {
+    modal.classList.remove("open");
+});
+
+function winPopUpShow() {
+    setTimeout(() => {
+        modal.classList.add("open");
+    }, 600);
 }
 
-.subheader {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: center;
-}
+startNewGame();
 
-.new_game_btn {
-    padding: 0.5rem;
-    border-radius: 1rem;
-    border: none;
-}
+cards.forEach(card => {
+    card.addEventListener("click", () => {
+        if (
+            isShuffling ||
+            isCheckingCards ||
+            card.classList.contains("card_flipped")
+        )
+            return; // Ignores click if cards are shuffling or if already flipped
 
-.new_game_btn:hover {
-    background-color: rgb(182, 181, 181);
-    color: #262626;
-}
+        card.classList.add("card_flipped");
+        currentCardsFlipped++;
+        currentCardsFlippedArray.push(card);
 
-.game_container {
-    display: grid;
-    gap: 1rem 5rem;
-    grid-template-columns: repeat(4, 6rem);
-    grid-template-rows: repeat(4, 9rem);
-    justify-content: center;
-    margin-top: 4rem;
-}
+        if (currentCardsFlipped == 2) {
+            isCheckingCards = true;
+            const card1 =
+                currentCardsFlippedArray[0].querySelector(".card_back");
+            const card2 =
+                currentCardsFlippedArray[1].querySelector(".card_back");
 
-/*Hover animation*/
-.card {
-    width: 100%;
-    height: 100%;
-    transition: transform 0.3s ease;
-    perspective: 1000px;
-}
+            const image1 = window.getComputedStyle(card1).backgroundImage;
+            const image2 = window.getComputedStyle(card2).backgroundImage;
 
-.card:hover {
-    transform: scale(1.1);
-}
+            // If different, remove all click events. If equal, add pair to pairsFound set
+            image1 !== image2
+                ? overlay.classList.remove("hidden")
+                : pairsFound.add(image1);
 
-/*Flip animation*/
-.card_inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    transition: transform 0.6s;
-}
+            setTimeout(() => {
+                overlay.classList.add("hidden");
+                if (image1 !== image2) {
+                    currentCardsFlippedArray.forEach(card => {
+                        card.classList.remove("card_flipped");
+                    });
+                }
+                currentCardsFlipped = 0;
+                currentCardsFlippedArray = [];
+                isCheckingCards = false;
+            }, 1000);
+        }
 
-.card_flipped .card_inner {
-    transform: rotateY(180deg);
-}
+        // Game won
+        if (pairsFound.size === 8) {
+            // If it's the first time playing
+            if (highscore === 0 || highscore > counter) {
+                highscore = counter;
+                lowestTimeEl.textContent = convertTimer(highscore);
+            }
 
-.card_front,
-.card_back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    background-size: cover;
-    background-position: center;
-    border-radius: 1rem;
-}
+            clearInterval(counterInterval);
+            winPopUpShow();
+        }
+    });
+});
 
-.card_front {
-    background-image: url("images/card8.png");
-}
+newGameBtn.addEventListener("click", () => {
+    isShuffling = true;
 
-.card_back {
-    transform: rotateY(180deg);
-}
+    cards.forEach(card => {
+        card.classList.remove("card_flipped");
+    });
 
-/*Shuffle animation*/
-@keyframes rotateCard {
-    to {
-        transform: translate(0, 0) scale(0.9) rotate(10deg);
-    }
-}
+    // TODO: Refactor code, inner is currently being repeated in the three timeouts. Priority 4
+    // Step 1: Rotates card
+    setTimeout(() => {
+        cards.forEach(card => {
+            const inner = card.querySelector(".card_inner");
+            inner.classList.remove("returning");
+            inner.classList.add("animating");
+        });
+    }, 600); // flip card animation time
 
-@keyframes shuffleCards {
-    0% {
-        transform: translate(2px, -2px) rotate(2deg);
-    }
-    25% {
-        transform: translate(-2px, 2px) rotate(-2deg);
-    }
-    50% {
-        transform: translate(3px, -1px) rotate(1deg);
-    }
-    75% {
-        transform: translate(-1px, 3px) rotate(-1deg);
-    }
-    100% {
-        transform: translate(0, 0) rotate(0deg);
-    }
-}
+    // Step 2: Shuffles card
+    setTimeout(() => {
+        cards.forEach(card => {
+            const inner = card.querySelector(".card_inner");
+            inner.classList.remove("animating");
+            inner.classList.add("shuffling");
+        });
+    }, 1100); // rotate animation time + flip card time
 
-.card_inner.animating {
-    transition: none;
-    animation: rotateCard 0.5s forwards;
-}
-
-.card_inner.shuffling {
-    animation: shuffleCards 0.4s infinite alternate;
-}
-
-.card_inner.returning {
-    animation: none;
-    transition: transform 0.5s;
-}
-
-/*Overlay to stop click events via Javascript*/
-.freeze-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0);
-    z-index: 999;
-    pointer-events: all;
-}
-
-.freeze-overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* Win modal pop up. Source: https://www.youtube.com/watch?v=r_PL0K2fGkY */
-.modal {
-    background-color: rgba(0, 0, 0, 0.3);
-    opacity: 0;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    transition: all 0.3s ease-in-out;
-    z-index: -1;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal.open {
-    opacity: 1;
-    z-index: 1000;
-}
-
-.modal-inner {
-    background-color: #fff;
-    border-radius: 15px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-    padding: 15px 25px;
-    text-align: center;
-    width: 380px;
-}
-
-.modal-inner h2 {
-    margin: 0;
-}
-
-.modal-inner p {
-    line-height: 24px;
-    margin: 10px 0;
-}
-
-.close_modal {
-    background-image: linear-gradient(to right, #663399, #8853bd);
-    border-radius: 20px;
-    border: 0;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-    color: #fff;
-    cursor: pointer;
-    padding: 10px 25px;
-}
-
-.close_modal:active {
-    opacity: 0.8;
-}
+    // Step 3: Returns to original state
+    setTimeout(() => {
+        cards.forEach(card => {
+            const inner = card.querySelector(".card_inner");
+            inner.classList.remove("shuffling");
+            inner.classList.add("returning");
+        });
+        isShuffling = false;
+        startNewGame();
+    }, 2100); // full time
+});
