@@ -37,19 +37,34 @@ function startNewGame() {
         });
     }, 1000);
 
-    const initalData = [
-        ["card0", 0],
-        ["card1", 0],
-        ["card2", 0],
-        ["card3", 0],
-        ["card4", 0],
-        ["card5", 0],
-        ["card6", 0],
-        ["card7", 0],
-    ];
-    cardsOnBoardMap = new Map(initalData);
-
     shuffleCards();
+}
+
+function fisherYatesShuffle(array) {
+    // Shuffle with Fisher-Yates algorithm
+    for (let i = array.length - 1; i > 0; i--) {
+        // Get random element in array before or equal to current position
+        const j = Math.floor(Math.random() * (i + 1));
+
+        // Swap random element with current one
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+function shuffleCards() {
+    const imageIds = [];
+    for (let i = 0; i < 8; i++) {
+        imageIds.push(i, i);
+    } // This will give me this array: [0,0,1,1,...,7,7]
+
+    fisherYatesShuffle(imageIds); // After this, array is shuffled. i.e: [1,2,0,3,1,5,...].
+
+    // Give each card a background image based on the imageIds array
+    cards.forEach((card, index) => {
+        const back = card.querySelector(".card_back"); // Get the back of the card
+        const imageId = imageIds[index]; // Get the shuffled id
+        back.style.backgroundImage = `url("images/card${imageId}.png")`; // Give the back of the card the image of the same number as the imageId
+    });
 }
 
 function convertTimer(counter) {
@@ -59,26 +74,6 @@ function convertTimer(counter) {
     const seconds = (counter - minutes * 60).toString().padStart(2, 0);
 
     return `${minutes}:${seconds}`;
-}
-
-function shuffleCards() {
-    cards.forEach(card => {
-        let mapped = false;
-        const back = card.querySelector(".card_back");
-
-        // TODO: This algorithm is waaay too inneficient. Refactor later with Fisher-Yates algorithm.
-        while (!mapped) {
-            const rng = Math.trunc(Math.random() * 8);
-            let currentCardAmount = cardsOnBoardMap.get(`card${rng}`);
-
-            if (currentCardAmount < 2) {
-                back.style.backgroundImage = `url("images/card${rng}.png")`;
-
-                cardsOnBoardMap.set(`card${rng}`, currentCardAmount + 1);
-                mapped = true;
-            }
-        }
-    });
 }
 
 closeModalBtn.addEventListener("click", () => {
