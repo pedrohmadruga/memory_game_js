@@ -63,7 +63,7 @@ function shuffleCards() {
     cards.forEach((card, index) => {
         const back = card.querySelector(".card_back"); // Get the back of the card
         const imageId = imageIds[index]; // Get the shuffled id
-        back.style.backgroundImage = `url("images/card${imageId}.png")`; // Give the back of the card the image of the same number as the imageId
+        back.style.backgroundImage = `url("./images/card${imageId}.png")`; // Give the back of the card the image of the same number as the imageId
     });
 }
 
@@ -181,3 +181,4 @@ function updateCardInnerClasses(removeClass, addClass) {
         inner.classList.add(addClass);
     });
 }
+
