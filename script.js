@@ -5,6 +5,8 @@ const newGameBtn = document.querySelector(".new_game_btn");
 const overlay = document.querySelector(".freeze-overlay");
 const closeModalBtn = document.querySelector(".close_modal");
 const modal = document.querySelector(".modal");
+const timerEl = document.querySelectorAll(".timer");
+const lowestTimeEl = document.querySelector(".lowest_time");
 
 // Global variables
 let isShuffling,
@@ -13,7 +15,10 @@ let isShuffling,
     totalCardsFlipped,
     cardsOnBoardMap,
     isCheckingCards,
-    pairsFound;
+    pairsFound,
+    counter,
+    counterInterval,
+    highscore = 0;
 
 function startNewGame() {
     isShuffling = false;
@@ -22,6 +27,15 @@ function startNewGame() {
     totalCardsFlipped = 0;
     currentCardsFlippedArray = [];
     pairsFound = new Set();
+    counter = 0;
+    clearInterval(counterInterval);
+
+    counterInterval = setInterval(() => {
+        counter++;
+        timerEl.forEach(timer => {
+            timer.textContent = convertTimer(counter);
+        });
+    }, 1000);
 
     const initalData = [
         ["card0", 0],
@@ -38,12 +52,21 @@ function startNewGame() {
     shuffleCards();
 }
 
+function convertTimer(counter) {
+    const minutes = Math.trunc(counter / 60)
+        .toString()
+        .padStart(2, 0);
+    const seconds = (counter - minutes * 60).toString().padStart(2, 0);
+
+    return `${minutes}:${seconds}`;
+}
+
 function shuffleCards() {
     cards.forEach(card => {
         let mapped = false;
         const back = card.querySelector(".card_back");
 
-        // TODO: This algorithm is waaay too inneficient. Refactor later with Fisher-Yates algorithm. Priority 3
+        // TODO: This algorithm is waaay too inneficient. Refactor later with Fisher-Yates algorithm.
         while (!mapped) {
             const rng = Math.trunc(Math.random() * 8);
             let currentCardAmount = cardsOnBoardMap.get(`card${rng}`);
@@ -63,14 +86,10 @@ closeModalBtn.addEventListener("click", () => {
 });
 
 function winPopUpShow() {
-    // TODO: set timeout to wait card flip and increase modal size. Priority 1
     setTimeout(() => {
         modal.classList.add("open");
     }, 600);
-    // TODO: blur filter while pop up is open
 }
-
-// TODO: close pop up event listener
 
 startNewGame();
 
@@ -115,7 +134,15 @@ cards.forEach(card => {
             }, 1000);
         }
 
+        // Game won
         if (pairsFound.size === 8) {
+            // If it's the first time playing
+            if (highscore === 0 || highscore > counter) {
+                highscore = counter;
+                lowestTimeEl.textContent = convertTimer(highscore);
+            }
+
+            clearInterval(counterInterval);
             winPopUpShow();
         }
     });
@@ -128,35 +155,34 @@ newGameBtn.addEventListener("click", () => {
         card.classList.remove("card_flipped");
     });
 
-    // TODO: Refactor code, inner is currently being repeated in the three timeouts. Priority 4
     // Step 1: Rotates card
     setTimeout(() => {
         cards.forEach(card => {
-            const inner = card.querySelector(".card_inner");
-            inner.classList.remove("returning");
-            inner.classList.add("animating");
+            updateCardInnerClasses("returning", "animating");
         });
     }, 600); // flip card animation time
 
     // Step 2: Shuffles card
     setTimeout(() => {
         cards.forEach(card => {
-            const inner = card.querySelector(".card_inner");
-            inner.classList.remove("animating");
-            inner.classList.add("shuffling");
+            updateCardInnerClasses("animating", "shuffling");
         });
     }, 1100); // rotate animation time + flip card time
 
     // Step 3: Returns to original state
     setTimeout(() => {
         cards.forEach(card => {
-            const inner = card.querySelector(".card_inner");
-            inner.classList.remove("shuffling");
-            inner.classList.add("returning");
+            updateCardInnerClasses("shuffling", "returning");
         });
         isShuffling = false;
         startNewGame();
     }, 2100); // full time
 });
 
-//TODO: Timer. Priority 2
+function updateCardInnerClasses(removeClass, addClass) {
+    cards.forEach(card => {
+        const inner = card.querySelector(".card_inner");
+        inner.classList.remove(removeClass);
+        inner.classList.add(addClass);
+    });
+}
